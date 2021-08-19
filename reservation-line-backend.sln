@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31112.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "reservation-line-backend", "reservation-line-backend\reservation-line-backend.csproj", "{1417DC59-27B1-4CC8-96A0-60E9445478BE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1417DC59-27B1-4CC8-96A0-60E9445478BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1417DC59-27B1-4CC8-96A0-60E9445478BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1417DC59-27B1-4CC8-96A0-60E9445478BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1417DC59-27B1-4CC8-96A0-60E9445478BE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6160952C-8D08-4B54-9764-5263FFA8BB9F}
+	EndGlobalSection
+EndGlobal
