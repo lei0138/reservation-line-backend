@@ -196,7 +196,7 @@ namespace reservation_line_backend.Controllers
             }
             catch (WebException wex)
             {
-                response_message = "[error_message]" + wex.Message;
+                response_message = wex.Message;
 
                 try
                 {
@@ -221,8 +221,8 @@ namespace reservation_line_backend.Controllers
                 }
             }
 
+            LogInfo(response_message);
             return response_message;
-
         }
 
     }
