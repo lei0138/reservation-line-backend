@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -37,12 +39,23 @@ namespace reservation_line_backend.Controllers
             .ToArray();
         }
 
+        private void LogInfo(string txt_log_info)
+        {
+            string message = string.Format("Time: {0} : {1}", DateTime.Now.ToString("dd/MM/yyyy hh:mm:ss tt"), txt_log_info);
+            message += Environment.NewLine;
+            using (StreamWriter writer = new StreamWriter("InfoLog.txt", true))
+            {
+                writer.WriteLine(message);
+                writer.Close();
+            }
+        }
+
         [HttpPost]
         public string Post([FromBody] Object requestParameter)
         {
             var result = new ActionResult { ErrorCode=0, ErrorMessage="none" };
 
-            _logger.LogInformation(requestParameter.ToString());
+            LogInfo(requestParameter.ToString());
             return requestParameter.ToString();
         }
     }
