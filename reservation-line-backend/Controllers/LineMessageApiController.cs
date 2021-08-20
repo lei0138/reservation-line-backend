@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace reservation_line_backend.Controllers
 {
@@ -34,6 +35,15 @@ namespace reservation_line_backend.Controllers
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpPost]
+        public string Post([FromBody] Object requestParameter)
+        {
+            var result = new ActionResult { ErrorCode=0, ErrorMessage="none" };
+
+            _logger.LogInformation(requestParameter.ToString());
+            return requestParameter.ToString();
         }
     }
 }
