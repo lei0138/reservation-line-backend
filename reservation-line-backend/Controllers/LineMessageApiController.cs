@@ -123,6 +123,7 @@ namespace reservation_line_backend.Controllers
         [HttpPost]
         public string Post([FromBody] Object request)
         {
+            LogInfo(request.ToString());
             JsonElement root_element = JsonDocument.Parse(request.ToString()).RootElement;
 
             WebhookRequestType webhook_request = JsonConvert.DeserializeObject<WebhookRequestType>(request.ToString());
