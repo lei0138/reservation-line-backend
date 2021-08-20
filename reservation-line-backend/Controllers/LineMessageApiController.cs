@@ -123,7 +123,28 @@ namespace reservation_line_backend.Controllers
         [HttpPost]
         public string Post([FromBody] Object request)
         {
-           
+            LogInfo(request.ToString());
+            JsonElement root_element = JsonDocument.Parse(request.ToString()).RootElement;
+
+            WebhookRequestType webhook_request = JsonConvert.DeserializeObject<WebhookRequestType>(request.ToString());
+
+            foreach (object event_data in webhook_request.event_obj_list)
+            {
+                JsonElement json_event_data = JsonDocument.Parse(event_data.ToString()).RootElement;
+                if (json_event_data.GetProperty("type").ToString().Equals("message"))
+                {
+                    EventMessageType message_event_data = JsonConvert.DeserializeObject<EventMessageType>(event_data.ToString());
+
+                    JsonElement json_source_type = JsonDocument.Parse(message_event_data.message_obj.ToString()).RootElement;
+                    if (json_source_type.GetProperty("type").ToString().Equals("text"))
+                    {
+                        MessageTextType message_text = JsonConvert.DeserializeObject<MessageTextType>(message_event_data.message_obj.ToString());
+
+                        MessageResponse(webhook_request, message_event_data, message_text);
+                    }
+                }
+            }
+
             var result = new ActionResult { ErrorCode=0, ErrorMessage="none" };
             return result.ToString();
         }
