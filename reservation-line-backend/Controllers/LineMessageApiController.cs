@@ -167,6 +167,8 @@ namespace reservation_line_backend.Controllers
 
         private string SendMessage(Dictionary<string, object> _params = null)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create("https://api.line.me/v2/bot/message/reply");
             http_request.Method = HttpMethod.Post.Method;
             http_request.Headers.Add("Content-Type", "application/json");
