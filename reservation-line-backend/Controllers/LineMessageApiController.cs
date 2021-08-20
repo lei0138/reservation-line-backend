@@ -155,9 +155,37 @@ namespace reservation_line_backend.Controllers
             {
                 TextMessageReplyType[] text_message = new TextMessageReplyType[1];
                 text_message[0] = new TextMessageReplyType();
-                text_message[0].text = "Hi, there";
+                text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
                 text_message[0].type = "text";
                 
+                SendMessage(new Dictionary<string, object>{
+                    { "replyToken", event_message.replyToken},
+                    { "messages", text_message},
+                    { "notificationDisabled", false }
+                });
+            }
+
+            if (message_text.text.Contains("11:30"))
+            {
+                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                text_message[0] = new TextMessageReplyType();
+                text_message[0].text = "予約情報を確認後、okを入力してください。2021/08/10 11:30 ";
+                text_message[0].type = "text";
+
+                SendMessage(new Dictionary<string, object>{
+                    { "replyToken", event_message.replyToken},
+                    { "messages", text_message},
+                    { "notificationDisabled", false }
+                });
+            }
+
+            if (message_text.text.Contains("ok"))
+            {
+                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                text_message[0] = new TextMessageReplyType();
+                text_message[0].text = "予約が完了しました。\r\n 2021 /08/10 11:30 ";
+                text_message[0].type = "text";
+
                 SendMessage(new Dictionary<string, object>{
                     { "replyToken", event_message.replyToken},
                     { "messages", text_message},
