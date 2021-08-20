@@ -17,7 +17,6 @@ namespace reservation_line_backend
     {
         public Startup(IConfiguration configuration)
         {
-            string test_val = "test";
             Configuration = configuration;
         }
 
