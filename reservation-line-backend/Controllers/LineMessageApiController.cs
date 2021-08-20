@@ -153,15 +153,14 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                TextMessageReplyType[] text_message = new TextMessageReplyType[2];
+                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                text_message[0] = new TextMessageReplyType();
                 text_message[0].text = "Hi, there";
                 text_message[0].type = "text";
-                text_message[1].text = "Hi, there";
-                text_message[1].type = "text";
-
+                
                 SendMessage(new Dictionary<string, object>{
                     { "replyToken", event_message.replyToken},
-                    { "messages", text_message.ToString()},
+                    { "messages", text_message},
                     { "notificationDisabled", false }
                 });
             }
@@ -169,11 +168,9 @@ namespace reservation_line_backend.Controllers
 
         private string SendMessage(Dictionary<string, object> _params = null)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
             HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create("https://api.line.me/v2/bot/message/reply");
             http_request.Method = HttpMethod.Post.Method;
-            http_request.Headers.Add("Content-Type", "application/json");
+            http_request.ContentType = "application/json";
             http_request.Headers.Add("Authorization", "Bearer {" + _access_token + "}");
 
             if (_params != null)
@@ -200,7 +197,28 @@ namespace reservation_line_backend.Controllers
             catch (WebException wex)
             {
                 response_message = "[error_message]" + wex.Message;
-                LogInfo(response_message);
+
+                try
+                {
+                    using (HttpWebResponse response = (HttpWebResponse)wex.Response)
+                    {
+                        Stream str = response.GetResponseStream();
+                        if (str == null)
+                        {
+                            return "";
+                        }
+
+                        using (StreamReader sr = new StreamReader(str))
+                        {
+                            string error_message = sr.ReadToEnd();
+                            LogInfo(error_message);
+                        }
+                    }
+                }
+                catch (Exception exeception)
+                {
+                    LogInfo(exeception.Message);
+                }
             }
 
             return response_message;
