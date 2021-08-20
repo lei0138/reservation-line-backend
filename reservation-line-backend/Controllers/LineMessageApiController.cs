@@ -153,9 +153,11 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                TextMessageReplyType[] text_message = new TextMessageReplyType[2];
                 text_message[0].text = "Hi, there";
                 text_message[0].type = "text";
+                text_message[1].text = "Hi, there";
+                text_message[1].type = "text";
 
                 SendMessage(new Dictionary<string, object>{
                     { "replyToken", event_message.replyToken},
