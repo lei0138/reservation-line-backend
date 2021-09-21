@@ -175,12 +175,11 @@ namespace reservation_line_backend.Controllers
                 msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
                 msg_content += "]}}";
 
-
                 FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
                 flex_message[0] = new FlexMessageReplyType();
                 flex_message[0].type = "flex";
                 flex_message[0].contents = msg_content;
-                flex_message[0].altText = "FlexMessage";
+                flex_message[0].altText = "Flex Message";
                 //TextMessageReplyType[] text_message = new TextMessageReplyType[1];
                 //text_message[0] = new TextMessageReplyType();
                 //text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
