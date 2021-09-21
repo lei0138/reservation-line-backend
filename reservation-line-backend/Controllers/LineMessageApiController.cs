@@ -107,7 +107,7 @@ namespace reservation_line_backend.Controllers
             public string altText { get; set; }
 
             [JsonProperty("contents")]
-            public string contents { get; set; }
+            public object contents { get; set; }
 
             public override string ToString()
             {
@@ -178,7 +178,7 @@ namespace reservation_line_backend.Controllers
                 FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
                 flex_message[0] = new FlexMessageReplyType();
                 flex_message[0].type = "flex";
-                flex_message[0].contents = msg_content;
+                flex_message[0].contents = JsonConvert.DeserializeObject(msg_content);
                 flex_message[0].altText = "Flex Message";
                 //TextMessageReplyType[] text_message = new TextMessageReplyType[1];
                 //text_message[0] = new TextMessageReplyType();
