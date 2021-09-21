@@ -232,6 +232,9 @@ namespace reservation_line_backend.Controllers
             {
                 using (var writer = new StreamWriter(http_request.GetRequestStream()))
                     writer.Write(JsonConvert.SerializeObject(_params).ToString());
+
+
+                LogInfo(JsonConvert.SerializeObject(_params).ToString());
             }
 
             string response_message = "";
