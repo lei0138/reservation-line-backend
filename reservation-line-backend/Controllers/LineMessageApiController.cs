@@ -169,10 +169,10 @@ namespace reservation_line_backend.Controllers
             {
                 string msg_content = "";
                 msg_content += "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"2021/08/21~2021/08/24\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
-                msg_content += "\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
-                msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"},";
-                msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"},";
-                msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
+                msg_content +=      "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+                msg_content +=          "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
+                msg_content +=          ",{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
+                msg_content +=      "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
                 msg_content += "]}}";
 
                 FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
@@ -232,9 +232,6 @@ namespace reservation_line_backend.Controllers
             {
                 using (var writer = new StreamWriter(http_request.GetRequestStream()))
                     writer.Write(JsonConvert.SerializeObject(_params).ToString());
-
-
-                LogInfo(JsonConvert.SerializeObject(_params).ToString());
             }
 
             string response_message = "";
