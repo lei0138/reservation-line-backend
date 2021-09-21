@@ -115,6 +115,52 @@ namespace reservation_line_backend.Controllers
             }
         }
 
+        public class XDateListType
+        {
+            [JsonProperty("events")]
+            public List<XDateType> list { get; set; }
+        }
+
+        public class XDateType
+        {
+            [JsonProperty("Calendar_Date")]
+            public DateTime Calendar_Date { get; set; }
+
+
+            [JsonProperty("Holiday")]
+            public int Holiday { get; set; }
+
+            [JsonProperty("Location1_Enable")]
+            public int Location1_Enable { get; set; }
+
+            [JsonProperty("Location1_Remaining")]
+            public int Location1_Remaining { get; set; }
+
+            [JsonProperty("Location2_Enable")]
+            public int Location2_Enable { get; set; }
+
+            [JsonProperty("Location2_Remaining")]
+            public int Location2_Remaining { get; set; }
+
+            [JsonProperty("Location3_Enable")]
+            public int Location3_Enable { get; set; }
+
+            [JsonProperty("Location3_Remaining")]
+            public int Location3_Remaining { get; set; }
+
+            [JsonProperty("Location4_Enable")]
+            public int Location4_Enable { get; set; }
+
+            [JsonProperty("Location4_Remaining")]
+            public int Location4_Remaining { get; set; }
+
+            [JsonProperty("Location5_Enable")]
+            public int Location5_Enable { get; set; }
+
+            [JsonProperty("Location5_Remaining")]
+            public int Location5_Remaining { get; set; }
+        }
+
         private readonly ILogger<LineMessageApiController> _logger;
         private readonly string _access_token;
         public LineMessageApiController(ILogger<LineMessageApiController> logger, IConfiguration iconfig)
@@ -167,12 +213,28 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                string msg_content = "";
-                msg_content += "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"2021/08/21~2021/08/24\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
-                msg_content +=      "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
-                msg_content +=          "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
-                msg_content +=          ",{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
-                msg_content +=      "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
+                string xml_content = sendRequest("https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom=2021/9/21&DtTo=2021/9/22");
+
+                List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
+
+                string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"2021/08/21~2021/08/24\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                int col_index = 0;
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == json_content_list.Count-1))
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
+
+                    col_index = (col_index + 1) % 2;
+                }
                 msg_content += "]}}";
 
                 FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
@@ -219,6 +281,34 @@ namespace reservation_line_backend.Controllers
                     { "notificationDisabled", false }
                 });
             }
+        }
+
+        private string sendRequest(string url)
+        {
+            HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create(url);
+            http_request.Method = HttpMethod.Get.Method;
+
+            string response_message = "";
+            try
+            {
+                using (WebResponse webResponse = http_request.GetResponse())
+                {
+                    Stream str = webResponse.GetResponseStream();
+                    if (str != null)
+                    {
+                        using (StreamReader sr = new StreamReader(str))
+                        {
+                            response_message = sr.ReadToEnd();
+                        }
+                    }
+                }
+            }
+            catch (WebException wex)
+            {
+                LogInfo(wex.Message);
+            }
+
+            return response_message;
         }
 
         private string SendMessage(Dictionary<string, object> _params = null)
