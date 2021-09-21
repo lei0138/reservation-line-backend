@@ -213,7 +213,7 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
+                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(3).ToString("yyyy/MM/dd")}");
 
                 List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
 
@@ -231,7 +231,12 @@ namespace reservation_line_backend.Controllers
                     msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"9/21\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"9/21\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == json_content_list.Count-1))
+                    {
                         msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\"}";
+
+                        if (index != json_content_list.Count - 1)
+                            msg_content += ",";
+                    }
 
                     col_index = (col_index + 1) % 2;
                 }
