@@ -213,7 +213,7 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                string xml_content = sendRequest("https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom=2021/9/21&DtTo=2021/9/22");
+                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
 
                 List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
 
