@@ -98,8 +98,19 @@ namespace reservation_line_backend.Controllers
             }
         }
 
+        public class FlexMessageReplyType
+        {
+            [JsonProperty("type")]
+            public string type { get; set; }
 
+            [JsonProperty("contents")]
+            public string contents { get; set; }
 
+            public override string ToString()
+            {
+                return JsonConvert.SerializeObject(this);
+            }
+        }
 
         private readonly ILogger<LineMessageApiController> _logger;
         private readonly string _access_token;
@@ -153,14 +164,28 @@ namespace reservation_line_backend.Controllers
         {
             if (message_text.text.Contains("予約"))
             {
-                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
-                text_message[0] = new TextMessageReplyType();
-                text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
-                text_message[0].type = "text";
+                string msg_content = "";
+                msg_content += "{'type': 'bubble','header': {'type': 'box','layout': 'vertical','contents': [{'type': 'text','text': '予約日程を選択してください。','color': '#46dd69','style': 'normal','weight': 'bold'}]},'hero': {'type': 'box','layout': 'vertical','contents': [{'type': 'text','text': '2021/08/21~2021/08/24','offsetStart': '20px','size': 'lg','weight': 'bold'}]},'body': {'type': 'box','layout': 'vertical','contents': [";
+                msg_content += "'type': 'box','layout': 'horizontal','contents': [";
+                msg_content += "{'type': 'box','layout': 'vertical','contents': [{'type': 'text','text': '9/21','align': 'center'}],'backgroundColor': '#8fb9eb','paddingTop': '10px','paddingBottom': '10px','cornerRadius': '10px','action': {'type': 'message','label': 'action','text': '9/21'},'width': '40%'},";
+                msg_content += "{'type': 'box','layout': 'vertical','contents': [{'type': 'text','text': '9/21','align': 'center'}],'backgroundColor': '#8fb9eb','paddingTop': '10px','paddingBottom': '10px','cornerRadius': '10px','action': {'type': 'message','label': 'action','text': '9/21'},'width': '40%'},";
+                msg_content += "],'offsetBottom': '10px','justifyContent': 'space-evenly'}";
+                msg_content += "]}}";
+
+
+                FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
+                flex_message[0] = new FlexMessageReplyType();
+                flex_message[0].type = "flex";
+                flex_message[0].contents = msg_content;
+
+                //TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                //text_message[0] = new TextMessageReplyType();
+                //text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
+                //text_message[0].type = "text";
                 
                 SendMessage(new Dictionary<string, object>{
                     { "replyToken", event_message.replyToken},
-                    { "messages", text_message},
+                    { "messages", flex_message},
                     { "notificationDisabled", false }
                 });
             }
