@@ -183,3 +183,7 @@ Time: 22/09/2021 03:06:32 AM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f
 
 Time: 22/09/2021 03:08:48 AM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"message","message":{"type":"text","id":"14786012356551","text":"予約"},"timestamp":1632251088247,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"1a9f9d8f80784f9a830d7cbf71ed74d7","mode":"active"}]}
 
+Time: 10/11/2021 03:47:07 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"message","message":{"type":"text","id":"14786012356551","text":"予約"},"timestamp":1632251088247,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"1a9f9d8f80784f9a830d7cbf71ed74d7","mode":"active"}]}
+
+Time: 10/11/2021 03:47:47 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"message","message":{"type":"text","id":"14786012356551","text":"予約"},"timestamp":1632251088247,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"1a9f9d8f80784f9a830d7cbf71ed74d7","mode":"active"}]}
+

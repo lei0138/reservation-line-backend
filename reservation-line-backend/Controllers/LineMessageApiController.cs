@@ -69,6 +69,7 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("message")]
             public Object message_obj { get; set; }
+
         }
         public class MessageType
         {
@@ -83,7 +84,6 @@ namespace reservation_line_backend.Controllers
             [JsonProperty("text")]
             public string text { get; set; }
         }
-
         public class TextMessageReplyType
         {
             [JsonProperty("type")]
@@ -97,7 +97,6 @@ namespace reservation_line_backend.Controllers
                 return JsonConvert.SerializeObject(this);
             }
         }
-
         public class FlexMessageReplyType
         {
             [JsonProperty("type")]
@@ -114,18 +113,15 @@ namespace reservation_line_backend.Controllers
                 return JsonConvert.SerializeObject(this);
             }
         }
-
         public class XDateListType
         {
             [JsonProperty("events")]
             public List<XDateType> list { get; set; }
         }
-
         public class XDateType
         {
             [JsonProperty("Calendar_Date")]
             public DateTime Calendar_Date { get; set; }
-
 
             [JsonProperty("Holiday")]
             public int Holiday { get; set; }
@@ -161,8 +157,51 @@ namespace reservation_line_backend.Controllers
             public int Location5_Remaining { get; set; }
         }
 
+        public class XProductType
+        {
+            [JsonProperty("Id")]
+            public int id { get; set; }
+
+            [JsonProperty("Name")]
+            public int name { get; set; }
+        }
+        public struct RequestType
+        {
+            public string user_id;
+            public int step_index;
+            public int selected_product_id;
+        }
+
         private readonly ILogger<LineMessageApiController> _logger;
         private readonly string _access_token;
+
+        private List<RequestType> _request_list = new List<RequestType>();
+
+        public int FindRequestIndex(string user_id)
+        {
+            for (int index = 0; index < _request_list.Count; index++)
+            {
+                if (_request_list[index].user_id == user_id)
+                {
+                    return index;
+                }
+            }
+
+            return -1;
+        }
+
+        public int AddNewRequest(string user_id)
+        {
+            RequestType request;
+            
+            request.user_id = user_id;
+            request.step_index = 1;
+            request.selected_product_id = -1;
+
+            _request_list.Add(request);
+
+            return _request_list.Count - 1;
+        }
         public LineMessageApiController(ILogger<LineMessageApiController> logger, IConfiguration iconfig)
         {
             _logger = logger;
@@ -194,12 +233,12 @@ namespace reservation_line_backend.Controllers
                 if (json_event_data.GetProperty("type").ToString().Equals("message"))
                 {
                     EventMessageType message_event_data = JsonConvert.DeserializeObject<EventMessageType>(event_data.ToString());
-
+                    
                     JsonElement json_source_type = JsonDocument.Parse(message_event_data.message_obj.ToString()).RootElement;
                     if (json_source_type.GetProperty("type").ToString().Equals("text"))
                     {
                         MessageTextType message_text = JsonConvert.DeserializeObject<MessageTextType>(message_event_data.message_obj.ToString());
-
+                        
                         MessageResponse(webhook_request, message_event_data, message_text);
                     }
                 }
@@ -209,9 +248,52 @@ namespace reservation_line_backend.Controllers
             return result.ToString();
         }
 
+        public void SendFlexMessage(string msg_content, string reply_token)
+        {
+            FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
+            flex_message[0] = new FlexMessageReplyType();
+            flex_message[0].type = "flex";
+            flex_message[0].contents = JsonConvert.DeserializeObject(msg_content);
+            flex_message[0].altText = "Flex Message";
+
+            SendMessage(new Dictionary<string, object>{
+                    { "replyToken", reply_token},
+                    { "messages", flex_message},
+                    { "notificationDisabled", false }
+                });
+
+        }
+
         private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
         {
+            int request_index = FindRequestIndex(event_message.source.userId);
+
+            if (request_index == -1)
+            {
+                request_index = AddNewRequest(event_message.source.userId);
+            }
+
+            RequestType cur_request = _request_list[request_index];
+
             if (message_text.text.Contains("予約"))
+            {
+                cur_request.step_index = 1;
+
+                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
+
+                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
+
+                string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                for (int index = 0; index <json_content_list.Count; index++)
+                {
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"select_product\",\"data\": \"product_id=" + json_content_list[index].id + "\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"},";
+                }
+                msg_content += "]}}";
+
+                SendFlexMessage(msg_content, event_message.replyToken);
+            }
+
+            /*if (message_text.text.Contains("予約"))
             {
                 string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
 
@@ -257,7 +339,7 @@ namespace reservation_line_backend.Controllers
                     { "messages", flex_message},
                     { "notificationDisabled", false }
                 });
-            }
+            }*/
 
             if (message_text.text.Contains("11:30"))
             {
