@@ -69,8 +69,8 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("message")]
             public Object message_obj { get; set; }
-
         }
+
         public class MessageType
         {
             [JsonProperty("id")]
@@ -163,7 +163,7 @@ namespace reservation_line_backend.Controllers
             public int id { get; set; }
 
             [JsonProperty("Name")]
-            public int name { get; set; }
+            public string name { get; set; }
         }
         public struct RequestType
         {
@@ -286,7 +286,13 @@ namespace reservation_line_backend.Controllers
                 string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
                 for (int index = 0; index <json_content_list.Count; index++)
                 {
-                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"select_product\",\"data\": \"product_id=" + json_content_list[index].id + "\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"},";
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"select_product\",\"data\": \"product_id=" + json_content_list[index].id + "\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+
+                    if (index != json_content_list.Count - 1)
+                    {
+                        msg_content += ",";
+                    }
+
                 }
                 msg_content += "]}}";
 
