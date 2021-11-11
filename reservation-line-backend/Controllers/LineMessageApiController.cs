@@ -402,7 +402,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{date:"+ json_content_list[index].Calendar_Date +" ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{date:'"+ json_content_list[index].Calendar_Date +"',person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == json_content_list.Count - 1))
                     {
