@@ -379,7 +379,7 @@ namespace reservation_line_backend.Controllers
                 int col_index = 0;
                 for (int index = 0; index < json_content_list.Count; index++)
                 {
-                    bool is_available = false;
+                    bool is_available = true;
                     if (request_data.location_id == 1 && json_content_list[index].Location1_Enable == 0 && json_content_list[index].Location1_Remaining >= request_data.person_count)
                         is_available = true;
                     else if (request_data.location_id == 2 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location2_Remaining >= request_data.person_count)
