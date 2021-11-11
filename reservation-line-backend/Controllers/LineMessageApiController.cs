@@ -22,10 +22,12 @@ namespace reservation_line_backend.Controllers
         public const string REQUEST_SELECTING_PRODUCT = "selecting_product";
         public const string REQUEST_SELECTING_PERSON_COUNT = "selecting_person_count";
         public const string REQUEST_SELECTING_DATE = "selecting_date";
+        public const string REQUEST_SELECTING_TIME = "selecting_time";
 
         public const string RESPONSE_SELECTED_PRODUCT = "selected_product";
         public const string RESPONSE_SELECTED_PERSON_COUNT = "selected_person_count";
         public const string RESPONSE_SELECTED_DATE = "selected_date";
+        public const string RESPONSE_SELECTED_TIME = "selected_time";
 
         public class WebhookRequestType
         {
@@ -184,6 +186,15 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("Default_Location_id")]
             public int location_id { get; set; }
+
+            [JsonProperty("Name1")]
+            public string name1 { get; set; }
+
+            [JsonProperty("Name2")]
+            public string name2 { get; set; }
+
+            [JsonProperty("Name3")]
+            public string name3 { get; set; }
         }
 
         public class PostbackDataType
@@ -202,6 +213,9 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("date")]
             public DateTime date { get; set; }
+
+            [JsonProperty("time")]
+            public string time { get; set; }
         }
 
         private readonly ILogger<LineMessageApiController> _logger;
@@ -285,6 +299,8 @@ namespace reservation_line_backend.Controllers
                 flex_content = MakeFlexContent(REQUEST_SELECTING_PERSON_COUNT, postback_data);
             else if (postback_data.type == RESPONSE_SELECTED_PERSON_COUNT)
                 flex_content = MakeFlexContent(REQUEST_SELECTING_DATE, postback_data);
+            else if (postback_data.type == RESPONSE_SELECTED_DATE)
+                flex_content = MakeFlexContent(REQUEST_SELECTING_TIME, postback_data);
 
             if (flex_content != "")
                 SendFlexMessage(flex_content, event_postback.replyToken);
@@ -402,6 +418,64 @@ namespace reservation_line_backend.Controllers
                 }
 
                 msg_content += "]}}";
+            }
+            else if (request_type == REQUEST_SELECTING_TIME)
+            {
+                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
+                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
+
+                foreach(XProductType json_product in json_content_list)
+                {
+                    if (json_product.id == request_data.product_id)
+                    {
+                        string time_string = "";
+
+                        if (request_data.location_id == 1)
+                            time_string = json_product.name1;
+                        else if (request_data.location_id == 2)
+                            time_string = json_product.name2;
+                        else if (request_data.location_id == 3)
+                            time_string = json_product.name3;
+
+                        string[] time_arr = time_string.Split(",");
+
+                        msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"時間を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                        bool is_exist_time = false;
+                        int col_index = 0;
+                        for (int index = 0; index < time_arr.Length; index++)
+                        {
+                            is_exist_time = true;
+
+                            if (col_index == 0)
+                                msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                            if (col_index == 1)
+                                msg_content += ",";
+
+                            msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + time_arr[index] + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_TIME + "\",\"data\": \"{time:'" + time_arr[index] + "',date:" + request_data.date + " ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
+
+                            if (col_index == 1 || (col_index == 0 && index == json_content_list.Count - 1))
+                            {
+                                msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                                if (index != json_content_list.Count - 1)
+                                    msg_content += ",";
+                            }
+
+                            col_index = (col_index + 1) % 2;
+                        }
+
+                        if (!is_exist_time)
+                        {
+                            msg_content += "{\"type\": \"text\",\"text\": \"予約可能な日付がありません。\"}";
+                        }
+
+                    }
+                }
+
+
+   
             }
             return msg_content;
         }
