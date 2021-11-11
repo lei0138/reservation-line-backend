@@ -299,3 +299,15 @@ Time: 11/11/2021 03:49:29 PM : {
 
 Time: 11/11/2021 05:09:19 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:9,type='select_product'}"},"timestamp":1636621669383,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"9dc3417b0f4e48049d2ea1fa5d4fb85b","mode":"active"}]}
 
+Time: 11/11/2021 05:14:45 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:9,type='select_product'}"},"timestamp":1636621669383,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"9dc3417b0f4e48049d2ea1fa5d4fb85b","mode":"active"}]}
+
+Time: 11/11/2021 05:16:03 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:11,type:'selected_product'}"},"timestamp":1636622067733,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"932efff64d0143b0a036b130ab9eca7c","mode":"active"}]}
+
+Time: 11/11/2021 05:16:53 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"message","message":{"type":"text","id":"15065825902275","text":"　予約"},"timestamp":1636622060967,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"5b3d7ac8256c4c3bb3bbd7047274137c","mode":"active"}]}
+
+Time: 11/11/2021 05:17:29 PM : {"message":"Invalid reply token"}
+
+Time: 11/11/2021 05:17:29 PM : The remote server returned an error: (400) Bad Request.
+
+Time: 11/11/2021 05:17:43 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:11,type:'selected_product'}"},"timestamp":1636622067733,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"932efff64d0143b0a036b130ab9eca7c","mode":"active"}]}
+

@@ -192,41 +192,12 @@ namespace reservation_line_backend.Controllers
         }
         public struct RequestType
         {
-            public string user_id;
             public string type;
             public int selected_product_id;
         }
 
         private readonly ILogger<LineMessageApiController> _logger;
         private readonly string _access_token;
-
-        private List<RequestType> _request_list = new List<RequestType>();
-
-        public int FindRequestIndex(string user_id)
-        {
-            for (int index = 0; index < _request_list.Count; index++)
-            {
-                if (_request_list[index].user_id == user_id)
-                {
-                    return index;
-                }
-            }
-
-            return -1;
-        }
-
-        public int AddNewRequest(string user_id)
-        {
-            RequestType request;
-            
-            request.user_id = user_id;
-            request.type = REQUEST_SELECTING_PRODUCT;
-            request.selected_product_id = -1;
-
-            _request_list.Add(request);
-
-            return _request_list.Count - 1;
-        }
         public LineMessageApiController(ILogger<LineMessageApiController> logger, IConfiguration iconfig)
         {
             _logger = logger;
@@ -301,36 +272,27 @@ namespace reservation_line_backend.Controllers
 
         private void PostbackResponse(EventPostbackType event_postback, PostbackDataType postback_data)
         {
-            int request_index = FindRequestIndex(event_postback.source.userId);
-
-            if (request_index == -1)
-                return;
-
-            RequestType cur_request = _request_list[request_index];
-
-            if (cur_request.type == REQUEST_SELECTING_PRODUCT && postback_data.type == RESPONSE_SELECTED_PRODUCT)
+            if (postback_data.type == RESPONSE_SELECTED_PRODUCT)
             {
-                cur_request.selected_product_id = postback_data.product_id;
-                cur_request.type = REQUEST_SELECTING_PERSON_COUNT;
+                RequestType request_data;
+                request_data.selected_product_id = postback_data.product_id;
+                request_data.type = REQUEST_SELECTING_PERSON_COUNT;
 
-                string flex_content = MakeFlexContent(cur_request);
+                string flex_content = MakeFlexContent(request_data);
                 SendFlexMessage(flex_content, event_postback.replyToken);
             }
-
-            _request_list[request_index] = cur_request;
 
         }
 
         private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
         {
-            int request_index = FindRequestIndex(event_message.source.userId);
-            
-            if (request_index == -1)
-                request_index = AddNewRequest(event_message.source.userId);
-
             if (message_text.text.Contains("予約"))
             {
-                string flex_content = MakeFlexContent(_request_list[request_index]);
+                RequestType request_data;
+                request_data.type = REQUEST_SELECTING_PRODUCT;
+                request_data.selected_product_id = -1;
+
+                string flex_content = MakeFlexContent(request_data);
                 SendFlexMessage(flex_content, event_message.replyToken);
             }
 
@@ -447,7 +409,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString()+ ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{product_id:"+ request_data.selected_product_id + " ,person_count:" + (index+1).ToString()+ ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == count - 1))
                     {
