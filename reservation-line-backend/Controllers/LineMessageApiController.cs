@@ -21,10 +21,11 @@ namespace reservation_line_backend.Controllers
     {
         public const string REQUEST_SELECTING_PRODUCT = "selecting_product";
         public const string REQUEST_SELECTING_PERSON_COUNT = "selecting_person_count";
+        public const string REQUEST_SELECTING_DATE = "selecting_date";
 
         public const string RESPONSE_SELECTED_PRODUCT = "selected_product";
         public const string RESPONSE_SELECTED_PERSON_COUNT = "selected_person_count";
-
+        public const string RESPONSE_SELECTED_DATE = "selected_date";
 
         public class WebhookRequestType
         {
@@ -198,6 +199,9 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("location_id")]
             public int location_id { get; set; }
+
+            [JsonProperty("date")]
+            public DateTime date { get; set; }
         }
 
         private readonly ILogger<LineMessageApiController> _logger;
@@ -276,15 +280,14 @@ namespace reservation_line_backend.Controllers
 
         private void PostbackResponse(EventPostbackType event_postback, PostbackDataType postback_data)
         {
+            string flex_content = "";
             if (postback_data.type == RESPONSE_SELECTED_PRODUCT)
-            {
-                string flex_content = MakeFlexContent(REQUEST_SELECTING_PERSON_COUNT, postback_data);
-                SendFlexMessage(flex_content, event_postback.replyToken);
-            } 
+                flex_content = MakeFlexContent(REQUEST_SELECTING_PERSON_COUNT, postback_data);
             else if (postback_data.type == RESPONSE_SELECTED_PERSON_COUNT)
-            {
+                flex_content = MakeFlexContent(REQUEST_SELECTING_DATE, postback_data);
 
-            }
+            if (flex_content != "")
+                SendFlexMessage(flex_content, event_postback.replyToken);
         }
 
         private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
@@ -307,7 +310,7 @@ namespace reservation_line_backend.Controllers
                 msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
                 for (int index = 0; index < json_content_list.Count; index++)
                 {
-                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",location_id:" + json_content_list[index].location_id + " ,type:'"+RESPONSE_SELECTED_PRODUCT+"'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",location_id:" + json_content_list[index].location_id + ",type:'"+RESPONSE_SELECTED_PRODUCT+"'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
 
                     if (index != json_content_list.Count - 1)
                     {
@@ -331,7 +334,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString() + ",product_id:" + request_data.product_id + ",location_id=" + request_data.location_id + " type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString() + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == count - 1))
                     {
@@ -343,6 +346,61 @@ namespace reservation_line_backend.Controllers
 
                     col_index = (col_index + 1) % 2;
                 }
+                msg_content += "]}}";
+            }
+            else if (request_type == REQUEST_SELECTING_DATE)
+            {
+                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
+
+                List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
+
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + DateTime.Now.ToString("yyyy/MM/dd") + "~" + DateTime.Now.AddDays(7).ToString("yyyy/MM/dd") + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                bool is_exist_date = false;
+                int col_index = 0;
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    bool is_available = false;
+                    if (request_data.location_id == 1 && json_content_list[index].Location1_Enable == 0 && json_content_list[index].Location1_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 2 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location2_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 3 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location3_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 4 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location4_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 5 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location5_Remaining >= request_data.person_count)
+                        is_available = true;
+
+                    if (!is_available)
+                        continue;
+
+                    is_exist_date = true;
+
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{date:"+ json_content_list[index].Calendar_Date +" ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == json_content_list.Count - 1))
+                    {
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                        if (index != json_content_list.Count - 1)
+                            msg_content += ",";
+                    }
+
+                    col_index = (col_index + 1) % 2;
+                }
+
+                if (!is_exist_date)
+                {
+                    msg_content += "{\"type\": \"text\",\"text\": \"予約可能な日付がありません。\"}";
+                }
+
                 msg_content += "]}}";
             }
             return msg_content;
