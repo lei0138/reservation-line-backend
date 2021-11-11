@@ -321,7 +321,171 @@ namespace reservation_line_backend.Controllers
         private string MakeFlexContent(string request_type, PostbackDataType request_data = null)
         {
             string msg_content = "";
+            if (request_type == REQUEST_SELECTING_PRODUCT)
+            {
+                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
+                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
 
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",location_id:" + json_content_list[index].location_id + ",type:'" + RESPONSE_SELECTED_PRODUCT + "'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+
+                    if (index != json_content_list.Count - 1)
+                    {
+                        msg_content += ",";
+                    }
+
+                }
+                msg_content += "]}}";
+            }
+            else if (request_type == REQUEST_SELECTING_PERSON_COUNT)
+            {
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"人数を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "1人～6人" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                int col_index = 0;
+                int count = 6;
+                for (int index = 0; index < count; index++)
+                {
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index + 1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index + 1).ToString() + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == count - 1))
+                    {
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                        if (index != count - 1)
+                            msg_content += ",";
+                    }
+
+                    col_index = (col_index + 1) % 2;
+                }
+                msg_content += "]}}";
+            }
+            else if (request_type == REQUEST_SELECTING_DATE)
+            {
+                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
+
+                List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
+
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + DateTime.Now.ToString("yyyy/MM/dd") + "~" + DateTime.Now.AddDays(7).ToString("yyyy/MM/dd") + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                bool is_exist_date = false;
+                int col_index = 0;
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    bool is_available = true;
+                    if (request_data.location_id == 1 && json_content_list[index].Location1_Enable == 0 && json_content_list[index].Location1_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 2 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location2_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 3 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location3_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 4 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location4_Remaining >= request_data.person_count)
+                        is_available = true;
+                    else if (request_data.location_id == 5 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location5_Remaining >= request_data.person_count)
+                        is_available = true;
+
+                    if (!is_available)
+                        continue;
+
+                    is_exist_date = true;
+
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{date:'" + json_content_list[index].Calendar_Date + "',person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == json_content_list.Count - 1))
+                    {
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                        if (index != json_content_list.Count - 1)
+                            msg_content += ",";
+                    }
+
+                    col_index = (col_index + 1) % 2;
+                }
+
+                if (!is_exist_date)
+                {
+                    msg_content += "{\"type\": \"text\",\"text\": \"予約可能な日付がありません。\"}";
+                }
+
+                msg_content += "]}}";
+            }
+            else if (request_type == REQUEST_SELECTING_TIME)
+            {
+                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
+                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
+
+                foreach (XProductType json_product in json_content_list)
+                {
+                    if (json_product.id == request_data.product_id)
+                    {
+                        string time_string = "";
+
+                        if (request_data.location_id == 1)
+                            time_string = json_product.name1;
+                        else if (request_data.location_id == 2)
+                            time_string = json_product.name2;
+                        else if (request_data.location_id == 3)
+                            time_string = json_product.name3;
+
+                        string[] time_arr = time_string.Split(",");
+
+                        msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"時間を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                        bool is_exist_time = false;
+                        int col_index = 0;
+                        for (int index = 0; index < time_arr.Length; index++)
+                        {
+                            is_exist_time = true;
+
+                            if (col_index == 0)
+                                msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                            if (col_index == 1)
+                                msg_content += ",";
+
+                            msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + time_arr[index] + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_TIME + "\",\"data\": \"{time:'" + time_arr[index] + "',date:" + request_data.date + " ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_TIME + "'}\"},\"width\": \"40%\"}";
+
+                            if (col_index == 1 || (col_index == 0 && index == time_arr.Length - 1))
+                            {
+                                msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                                if (index != time_arr.Length - 1)
+                                    msg_content += ",";
+                            }
+
+                            col_index = (col_index + 1) % 2;
+                        }
+
+                        if (!is_exist_time)
+                        {
+                            msg_content += "{\"type\": \"text\",\"text\": \"予約可能な日付がありません。\"}";
+                        }
+
+                    }
+                }
+
+
+
+            }
+            else if (request_type == REQUEST_COMPLETE)
+            {
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約が完了しました。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                msg_content += "]}}";
+
+            }
             return msg_content;
         }
 
