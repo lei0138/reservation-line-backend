@@ -311,3 +311,5 @@ Time: 11/11/2021 05:17:29 PM : The remote server returned an error: (400) Bad Re
 
 Time: 11/11/2021 05:17:43 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:11,type:'selected_product'}"},"timestamp":1636622067733,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"932efff64d0143b0a036b130ab9eca7c","mode":"active"}]}
 
+Time: 11/11/2021 05:44:42 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:14,type:'selected_product'}"},"timestamp":1636623831241,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"cb74aa01989945de837d4c5c73b4782f","mode":"active"}]}
+

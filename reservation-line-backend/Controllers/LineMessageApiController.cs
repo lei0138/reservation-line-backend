@@ -397,7 +397,7 @@ namespace reservation_line_backend.Controllers
             } 
             else if (request_data.type == REQUEST_SELECTING_PERSON_COUNT)
             {
-                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"人数を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"1~6\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + DateTime.Now.ToString("yyyy/MM/dd") + "~" + DateTime.Now.AddDays(7).ToString("yyyy/MM/dd") + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
 
                 int col_index = 0;
                 int count = 6;
@@ -409,7 +409,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{product_id:"+ request_data.selected_product_id + " ,person_count:" + (index+1).ToString()+ ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"" + (index+1).ToString() + "\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == count - 1))
                     {
