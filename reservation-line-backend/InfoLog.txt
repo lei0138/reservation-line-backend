@@ -339,3 +339,5 @@ Time: 12/11/2021 03:34:09 AM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f
 
 Time: 12/11/2021 03:41:03 AM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{person_count:3,product_id:13,location_id:2,type:'selected_person_count'}"},"timestamp":1636659012830,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"c2882320c15f47749711dbf86e0082f0","mode":"active"}]}
 
+Time: 12/11/2021 03:49:37 AM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{date:'11/17/2021 12:00:00 AM',person_count:3,product_id:13,location_id:2,type:'selected_date'}"},"timestamp":1636660097863,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"bc7794c33bd74338a439b0c8c970be87","mode":"active"}]}
+
