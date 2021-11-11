@@ -19,6 +19,11 @@ namespace reservation_line_backend.Controllers
     [Route("[controller]")]
     public class LineMessageApiController : ControllerBase
     {
+        public const string REQUEST_SELECTING_PRODUCT = "selecting_product";
+        public const string REQUEST_SELECTING_PERSON_COUNT = "selecting_person_count";
+
+        public const string RESPONSE_SELECTED_PRODUCT = "selected_product";
+
         public class WebhookRequestType
         {
             [JsonProperty("destination")]
@@ -69,6 +74,15 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("message")]
             public Object message_obj { get; set; }
+        }
+
+        public class EventPostbackType: EventType
+        {
+            [JsonProperty("replyToken")]
+            public string replyToken { get; set; }
+
+            [JsonProperty("postback")]
+            public Object postback_obj { get; set; }
         }
 
         public class MessageType
@@ -165,10 +179,19 @@ namespace reservation_line_backend.Controllers
             [JsonProperty("Name")]
             public string name { get; set; }
         }
+
+        public class PostbackDataType
+        {
+            [JsonProperty("type")]
+            public string type { get; set; }
+
+            [JsonProperty("product_id")]
+            public int product_id { get; set; }
+        }
         public struct RequestType
         {
             public string user_id;
-            public int step_index;
+            public string type;
             public int selected_product_id;
         }
 
@@ -195,7 +218,7 @@ namespace reservation_line_backend.Controllers
             RequestType request;
             
             request.user_id = user_id;
-            request.step_index = 1;
+            request.type = REQUEST_SELECTING_PRODUCT;
             request.selected_product_id = -1;
 
             _request_list.Add(request);
@@ -241,6 +264,16 @@ namespace reservation_line_backend.Controllers
                         
                         MessageResponse(webhook_request, message_event_data, message_text);
                     }
+                } 
+                else if (json_event_data.GetProperty("type").ToString().Equals("postback"))
+                {
+                    EventPostbackType postback_event_data = JsonConvert.DeserializeObject<EventPostbackType>(event_data.ToString());
+
+                    JsonElement json_postback_obj = JsonDocument.Parse(postback_event_data.postback_obj.ToString()).RootElement;
+
+                    PostbackDataType postback_data = JsonConvert.DeserializeObject<PostbackDataType>(json_postback_obj.GetProperty("data").ToString());
+
+                    PostbackResponse(postback_event_data, postback_data);
                 }
             }
 
@@ -264,39 +297,39 @@ namespace reservation_line_backend.Controllers
 
         }
 
-        private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
+        private void PostbackResponse(EventPostbackType event_postback, PostbackDataType postback_data)
         {
-            int request_index = FindRequestIndex(event_message.source.userId);
+            int request_index = FindRequestIndex(event_postback.source.userId);
 
             if (request_index == -1)
-            {
-                request_index = AddNewRequest(event_message.source.userId);
-            }
+                return;
 
             RequestType cur_request = _request_list[request_index];
 
+            if (cur_request.type == REQUEST_SELECTING_PRODUCT && postback_data.type == RESPONSE_SELECTED_PRODUCT)
+            {
+                cur_request.selected_product_id = postback_data.product_id;
+                cur_request.type = REQUEST_SELECTING_PERSON_COUNT;
+
+                string flex_content = MakeFlexContent(cur_request);
+                SendFlexMessage(flex_content, event_postback.replyToken);
+            }
+
+            _request_list[request_index] = cur_request;
+
+        }
+
+        private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
+        {
+            int request_index = FindRequestIndex(event_message.source.userId);
+            
+            if (request_index == -1)
+                request_index = AddNewRequest(event_message.source.userId);
+
             if (message_text.text.Contains("予約"))
             {
-                cur_request.step_index = 1;
-
-                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
-
-                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
-
-                string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
-                for (int index = 0; index <json_content_list.Count; index++)
-                {
-                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"select_product\",\"data\": \"product_id=" + json_content_list[index].id + "\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
-
-                    if (index != json_content_list.Count - 1)
-                    {
-                        msg_content += ",";
-                    }
-
-                }
-                msg_content += "]}}";
-
-                SendFlexMessage(msg_content, event_message.replyToken);
+                string flex_content = MakeFlexContent(_request_list[request_index]);
+                SendFlexMessage(flex_content, event_message.replyToken);
             }
 
             /*if (message_text.text.Contains("予約"))
@@ -347,7 +380,7 @@ namespace reservation_line_backend.Controllers
                 });
             }*/
 
-            if (message_text.text.Contains("11:30"))
+           /* if (message_text.text.Contains("11:30"))
             {
                 TextMessageReplyType[] text_message = new TextMessageReplyType[1];
                 text_message[0] = new TextMessageReplyType();
@@ -373,9 +406,63 @@ namespace reservation_line_backend.Controllers
                     { "messages", text_message},
                     { "notificationDisabled", false }
                 });
-            }
+            }*/
         }
 
+
+        private string MakeFlexContent(RequestType request_data)
+        {
+            string msg_content = "";
+            if (request_data.type == REQUEST_SELECTING_PRODUCT)
+            {
+                string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
+                List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
+
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",type='select_product'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+
+                    if (index != json_content_list.Count - 1)
+                    {
+                        msg_content += ",";
+                    }
+
+                }
+                msg_content += "]}}";
+            } 
+            else if (request_data.type == REQUEST_SELECTING_PERSON_COUNT)
+            {
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"人数を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"1~6\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                int col_index = 0;
+                int count = 6;
+                for (int index = 0; index < count; index++)
+                {
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + index.ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"" + index.ToString() + "\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == count - 1))
+                    {
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                        if (index != count - 1)
+                            msg_content += ",";
+                    }
+
+                    col_index = (col_index + 1) % 2;
+                }
+                msg_content += "]}}";
+            }
+
+
+            return msg_content;
+        }
         private string sendRequest(string url)
         {
             HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create(url);
