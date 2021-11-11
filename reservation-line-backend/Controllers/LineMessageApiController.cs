@@ -180,6 +180,9 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("Name")]
             public string name { get; set; }
+
+            [JsonProperty("Default_Location_id")]
+            public int location_id { get; set; }
         }
 
         public class PostbackDataType
@@ -189,11 +192,12 @@ namespace reservation_line_backend.Controllers
 
             [JsonProperty("product_id")]
             public int product_id { get; set; }
-        }
-        public struct RequestType
-        {
-            public string type;
-            public int selected_product_id;
+
+            [JsonProperty("person_count")]
+            public int person_count { get; set; }
+
+            [JsonProperty("location_id")]
+            public int location_id { get; set; }
         }
 
         private readonly ILogger<LineMessageApiController> _logger;
@@ -274,110 +278,28 @@ namespace reservation_line_backend.Controllers
         {
             if (postback_data.type == RESPONSE_SELECTED_PRODUCT)
             {
-                RequestType request_data;
-                request_data.selected_product_id = postback_data.product_id;
-                request_data.type = REQUEST_SELECTING_PERSON_COUNT;
-
-                string flex_content = MakeFlexContent(request_data);
+                string flex_content = MakeFlexContent(REQUEST_SELECTING_PERSON_COUNT, postback_data);
                 SendFlexMessage(flex_content, event_postback.replyToken);
-            }
+            } 
+            else if (postback_data.type == RESPONSE_SELECTED_PERSON_COUNT)
+            {
 
+            }
         }
 
         private void MessageResponse(WebhookRequestType webhook, EventMessageType event_message, MessageTextType message_text)
         {
             if (message_text.text.Contains("予約"))
             {
-                RequestType request_data;
-                request_data.type = REQUEST_SELECTING_PRODUCT;
-                request_data.selected_product_id = -1;
-
-                string flex_content = MakeFlexContent(request_data);
+                string flex_content = MakeFlexContent(REQUEST_SELECTING_PRODUCT);
                 SendFlexMessage(flex_content, event_message.replyToken);
             }
-
-            /*if (message_text.text.Contains("予約"))
-            {
-                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
-
-                List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
-
-                string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + DateTime.Now.ToString("yyyy/MM/dd") + "~" + DateTime.Now.AddDays(7).ToString("yyyy/MM/dd") + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
-
-                int col_index = 0;
-                for (int index = 0; index < json_content_list.Count; index++)
-                {
-                    if (col_index == 0)
-                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
-
-                    if (col_index == 1)
-                        msg_content += ",";
-
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\"},\"width\": \"40%\"}";
-
-                    if (col_index == 1 || (col_index == 0 && index == json_content_list.Count-1))
-                    {
-                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
-
-                        if (index != json_content_list.Count - 1)
-                            msg_content += ",";
-                    }
-
-                    col_index = (col_index + 1) % 2;
-                }
-                msg_content += "]}}";
-
-                FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
-                flex_message[0] = new FlexMessageReplyType();
-                flex_message[0].type = "flex";
-                flex_message[0].contents = JsonConvert.DeserializeObject(msg_content);
-                flex_message[0].altText = "Flex Message";
-                //TextMessageReplyType[] text_message = new TextMessageReplyType[1];
-                //text_message[0] = new TextMessageReplyType();
-                //text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
-                //text_message[0].type = "text";
-
-                SendMessage(new Dictionary<string, object>{
-                    { "replyToken", event_message.replyToken},
-                    { "messages", flex_message},
-                    { "notificationDisabled", false }
-                });
-            }*/
-
-           /* if (message_text.text.Contains("11:30"))
-            {
-                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
-                text_message[0] = new TextMessageReplyType();
-                text_message[0].text = "予約情報を確認後、okを入力してください。2021/08/10 11:30 ";
-                text_message[0].type = "text";
-
-                SendMessage(new Dictionary<string, object>{
-                    { "replyToken", event_message.replyToken},
-                    { "messages", text_message},
-                    { "notificationDisabled", false }
-                });
-            }
-
-            if (message_text.text.Contains("ok"))
-            {
-                TextMessageReplyType[] text_message = new TextMessageReplyType[1];
-                text_message[0] = new TextMessageReplyType();
-                text_message[0].text = "予約が完了しました。\r\n 2021 /08/10 11:30 ";
-                text_message[0].type = "text";
-
-                SendMessage(new Dictionary<string, object>{
-                    { "replyToken", event_message.replyToken},
-                    { "messages", text_message},
-                    { "notificationDisabled", false }
-                });
-            }*/
         }
 
-
-        private string MakeFlexContent(RequestType request_data)
+        private string MakeFlexContent(string request_type, PostbackDataType request_data = null)
         {
             string msg_content = "";
-            if (request_data.type == REQUEST_SELECTING_PRODUCT)
+            if (request_type == REQUEST_SELECTING_PRODUCT)
             {
                 string xml_content = sendRequest($"http://dantaiapidemo.azurewebsites.net/api/srvProduct/Search2?bumon=2");
                 List<XProductType> json_content_list = JsonConvert.DeserializeObject<List<XProductType>>(xml_content);
@@ -385,7 +307,7 @@ namespace reservation_line_backend.Controllers
                 msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
                 for (int index = 0; index < json_content_list.Count; index++)
                 {
-                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",type:'"+RESPONSE_SELECTED_PRODUCT+"'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",location_id:" + json_content_list[index].location_id + " ,type:'"+RESPONSE_SELECTED_PRODUCT+"'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
 
                     if (index != json_content_list.Count - 1)
                     {
@@ -395,7 +317,7 @@ namespace reservation_line_backend.Controllers
                 }
                 msg_content += "]}}";
             } 
-            else if (request_data.type == REQUEST_SELECTING_PERSON_COUNT)
+            else if (request_type == REQUEST_SELECTING_PERSON_COUNT)
             {
                 msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"人数を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "1人～6人" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
 
@@ -409,7 +331,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString() + ",product_id:" + request_data.selected_product_id + ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString() + ",product_id:" + request_data.product_id + ",location_id=" + request_data.location_id + " type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == count - 1))
                     {
@@ -423,10 +345,9 @@ namespace reservation_line_backend.Controllers
                 }
                 msg_content += "]}}";
             }
-
-
             return msg_content;
         }
+
         private string sendRequest(string url)
         {
             HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create(url);
@@ -454,7 +375,6 @@ namespace reservation_line_backend.Controllers
 
             return response_message;
         }
-
         private string SendMessage(Dictionary<string, object> _params = null)
         {
             HttpWebRequest http_request = (HttpWebRequest)WebRequest.Create("https://api.line.me/v2/bot/message/reply");
@@ -519,3 +439,80 @@ namespace reservation_line_backend.Controllers
 
 
 }
+
+
+/*if (message_text.text.Contains("予約"))
+            {
+                string xml_content = sendRequest($"https://dantaiapidemo.azurewebsites.net/api/srvCalendar/Search2?DtFrom={DateTime.Now.ToString("yyyy/MM/dd")}&DtTo={DateTime.Now.AddDays(7).ToString("yyyy/MM/dd")}");
+
+                List<XDateType> json_content_list = JsonConvert.DeserializeObject<List<XDateType>>(xml_content);
+
+                string msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約日程を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + DateTime.Now.ToString("yyyy/MM/dd") + "~" + DateTime.Now.AddDays(7).ToString("yyyy/MM/dd") + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+
+                int col_index = 0;
+                for (int index = 0; index < json_content_list.Count; index++)
+                {
+                    if (col_index == 0)
+                        msg_content += "{\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [";
+
+                    if (col_index == 1)
+                        msg_content += ",";
+
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"" + json_content_list[index].Calendar_Date.ToString("MM/dd") + "\"},\"width\": \"40%\"}";
+
+                    if (col_index == 1 || (col_index == 0 && index == json_content_list.Count-1))
+                    {
+                        msg_content += "],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\", \"paddingBottom\": \"10px\"}";
+
+                        if (index != json_content_list.Count - 1)
+                            msg_content += ",";
+                    }
+
+                    col_index = (col_index + 1) % 2;
+                }
+                msg_content += "]}}";
+
+                FlexMessageReplyType[] flex_message = new FlexMessageReplyType[1];
+                flex_message[0] = new FlexMessageReplyType();
+                flex_message[0].type = "flex";
+                flex_message[0].contents = JsonConvert.DeserializeObject(msg_content);
+                flex_message[0].altText = "Flex Message";
+                //TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+                //text_message[0] = new TextMessageReplyType();
+                //text_message[0].text = "予約時間を選択してください。\r\n 2021/08/10 \r\n=================\r\n 10:30, \r\n 11:30, \r\n 12:30, \r\n 13:30";
+                //text_message[0].type = "text";
+
+                SendMessage(new Dictionary<string, object>{
+                    { "replyToken", event_message.replyToken},
+                    { "messages", flex_message},
+                    { "notificationDisabled", false }
+                });
+            }*/
+
+/* if (message_text.text.Contains("11:30"))
+ {
+     TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+     text_message[0] = new TextMessageReplyType();
+     text_message[0].text = "予約情報を確認後、okを入力してください。2021/08/10 11:30 ";
+     text_message[0].type = "text";
+
+     SendMessage(new Dictionary<string, object>{
+         { "replyToken", event_message.replyToken},
+         { "messages", text_message},
+         { "notificationDisabled", false }
+     });
+ }
+
+ if (message_text.text.Contains("ok"))
+ {
+     TextMessageReplyType[] text_message = new TextMessageReplyType[1];
+     text_message[0] = new TextMessageReplyType();
+     text_message[0].text = "予約が完了しました。\r\n 2021 /08/10 11:30 ";
+     text_message[0].type = "text";
+
+     SendMessage(new Dictionary<string, object>{
+         { "replyToken", event_message.replyToken},
+         { "messages", text_message},
+         { "notificationDisabled", false }
+     });
+ }*/
