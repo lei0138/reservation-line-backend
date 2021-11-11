@@ -297,3 +297,5 @@ Time: 11/11/2021 03:49:29 PM : {
         }]
 }
 
+Time: 11/11/2021 05:09:19 PM : {"destination":"U262b2b7e8b51a3afb04b7c4490c7149f","events":[{"type":"postback","postback":{"data":"{product_id:9,type='select_product'}"},"timestamp":1636621669383,"source":{"type":"user","userId":"Uc3bc79c90a66357b58d82978c7b293f6"},"replyToken":"9dc3417b0f4e48049d2ea1fa5d4fb85b","mode":"active"}]}
+

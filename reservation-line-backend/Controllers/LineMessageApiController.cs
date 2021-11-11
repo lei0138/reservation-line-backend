@@ -23,6 +23,8 @@ namespace reservation_line_backend.Controllers
         public const string REQUEST_SELECTING_PERSON_COUNT = "selecting_person_count";
 
         public const string RESPONSE_SELECTED_PRODUCT = "selected_product";
+        public const string RESPONSE_SELECTED_PERSON_COUNT = "selected_person_count";
+
 
         public class WebhookRequestType
         {
@@ -421,7 +423,7 @@ namespace reservation_line_backend.Controllers
                 msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{ \"type\": \"text\", \"text\": \"商品を選択してください。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": []},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
                 for (int index = 0; index < json_content_list.Count; index++)
                 {
-                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",type='select_product'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
+                    msg_content += " {\"type\": \"box\",\"layout\": \"horizontal\",\"contents\": [{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + json_content_list[index].name + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PRODUCT + "\",\"data\": \"{product_id:" + json_content_list[index].id + ",type:'"+RESPONSE_SELECTED_PRODUCT+"'}\"},\"width\": \"75%\"}],\"offsetBottom\": \"10px\",\"justifyContent\": \"space-evenly\",\"paddingBottom\": \"10px\"}";
 
                     if (index != json_content_list.Count - 1)
                     {
@@ -445,7 +447,7 @@ namespace reservation_line_backend.Controllers
                     if (col_index == 1)
                         msg_content += ",";
 
-                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + index.ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\",\"text\": \"" + index.ToString() + "\"},\"width\": \"40%\"}";
+                    msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + (index+1).ToString() + "人\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"message\",\"label\": \"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_PERSON_COUNT + "\",\"data\": \"{person_count:" + (index+1).ToString()+ ",type:'" + RESPONSE_SELECTED_PERSON_COUNT + "'}\"},\"width\": \"40%\"}";
 
                     if (col_index == 1 || (col_index == 0 && index == count - 1))
                     {
