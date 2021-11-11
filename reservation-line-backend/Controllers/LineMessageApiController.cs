@@ -391,8 +391,8 @@ namespace reservation_line_backend.Controllers
                     else if (request_data.location_id == 5 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location5_Remaining >= request_data.person_count)
                         is_available = true;
 
-                    if (!is_available)
-                        continue;
+                    //if (!is_available)
+                    //    continue;
 
                     is_exist_date = true;
 
