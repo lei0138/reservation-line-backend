@@ -23,6 +23,7 @@ namespace reservation_line_backend.Controllers
         public const string REQUEST_SELECTING_PERSON_COUNT = "selecting_person_count";
         public const string REQUEST_SELECTING_DATE = "selecting_date";
         public const string REQUEST_SELECTING_TIME = "selecting_time";
+        public const string REQUEST_COMPLETE = "REQUEST_COMPLETE";
 
         public const string RESPONSE_SELECTED_PRODUCT = "selected_product";
         public const string RESPONSE_SELECTED_PERSON_COUNT = "selected_person_count";
@@ -301,6 +302,8 @@ namespace reservation_line_backend.Controllers
                 flex_content = MakeFlexContent(REQUEST_SELECTING_DATE, postback_data);
             else if (postback_data.type == RESPONSE_SELECTED_DATE)
                 flex_content = MakeFlexContent(REQUEST_SELECTING_TIME, postback_data);
+            else if (postback_data.type == RESPONSE_SELECTED_TIME)
+                flex_content = MakeFlexContent(REQUEST_COMPLETE, postback_data);
 
             if (flex_content != "")
                 SendFlexMessage(flex_content, event_postback.replyToken);
@@ -388,8 +391,8 @@ namespace reservation_line_backend.Controllers
                     else if (request_data.location_id == 5 && json_content_list[index].Location2_Enable == 0 && json_content_list[index].Location5_Remaining >= request_data.person_count)
                         is_available = true;
 
-                    if (!is_available)
-                        continue;
+                    //if (!is_available)
+                    //    continue;
 
                     is_exist_date = true;
 
@@ -453,7 +456,7 @@ namespace reservation_line_backend.Controllers
                             if (col_index == 1)
                                 msg_content += ",";
 
-                            msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + time_arr[index] + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_TIME + "\",\"data\": \"{time:'" + time_arr[index] + "',date:" + request_data.date + " ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_DATE + "'}\"},\"width\": \"40%\"}";
+                            msg_content += "{\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + time_arr[index] + "\",\"align\": \"center\"}],\"backgroundColor\": \"#8fb9eb\",\"paddingTop\": \"10px\",\"paddingBottom\": \"10px\",\"cornerRadius\": \"10px\",\"action\": {\"type\": \"postback\",\"label\": \"" + RESPONSE_SELECTED_TIME + "\",\"data\": \"{time:'" + time_arr[index] + "',date:" + request_data.date + " ,person_count:" + request_data.person_count + ",product_id:" + request_data.product_id + ",location_id:" + request_data.location_id + ",type:'" + RESPONSE_SELECTED_TIME + "'}\"},\"width\": \"40%\"}";
 
                             if (col_index == 1 || (col_index == 0 && index == json_content_list.Count - 1))
                             {
@@ -476,6 +479,12 @@ namespace reservation_line_backend.Controllers
 
 
    
+            }
+            else if (request_type == REQUEST_COMPLETE)
+            {
+                msg_content = "{\"type\": \"bubble\",\"header\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"予約が完了しました。\",\"color\": \"#46dd69\",\"style\": \"normal\",\"weight\": \"bold\"}]},\"hero\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [{\"type\": \"text\",\"text\": \"" + "\",\"offsetStart\": \"20px\",\"size\": \"lg\",\"weight\": \"bold\"}]},\"body\": {\"type\": \"box\",\"layout\": \"vertical\",\"contents\": [";
+                msg_content += "]}}";
+
             }
             return msg_content;
         }
